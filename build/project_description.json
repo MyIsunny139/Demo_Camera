@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "Demo_Camera",
-    "project_version":    "3c2eadf-dirty",
+    "project_version":    "8916de2-dirty",
     "project_path":       "E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera",
     "idf_path":           "E:/soft/Espressif/frameworks/esp-idf-v5.4.2",
     "build_dir":          "E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build",

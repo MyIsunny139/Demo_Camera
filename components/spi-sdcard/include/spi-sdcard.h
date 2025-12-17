@@ -23,14 +23,12 @@
 
 
 /* 引脚定义 */
-#define SPI_MOSI_GPIO_PIN GPIO_NUM_39 /* SPI2_MOSI */
-#define SPI_CLK_GPIO_PIN GPIO_NUM_40 /* SPI2_CLK */
-#define SPI_MISO_GPIO_PIN GPIO_NUM_38 /* SPI2_MISO */
+#define SPI_MOSI_GPIO_PIN GPIO_NUM_38 /* SD_CMD */
+#define SPI_CLK_GPIO_PIN  GPIO_NUM_39 /* SD_CLK */
+#define SPI_MISO_GPIO_PIN GPIO_NUM_40 /* SD_DATA (D0) */
 
-
-
-/* 引脚定义 */
-#define SD_NUM_CS GPIO_NUM_41 /* SPI2_CS */
+/* CS 引脚在 SDIO 模式下不需要，保留定义以防编译错误，但不使用 */
+#define SD_NUM_CS GPIO_NUM_NC 
 #define MOUNT_POINT "/0:"
 
 #ifdef __cplusplus

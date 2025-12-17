@@ -100,4 +100,7 @@ void app_main(void)
     ESP_ERROR_CHECK(nvs_flash_init());
     app_button_init();
     ap_wifi_init(wifi_state_handle);
+    spi2_init();
+    ESP_ERROR_CHECK(sd_spi_init());
+    
 }

@@ -47,48 +47,51 @@ static sdmmc_card_t *s_card = NULL;
 */
 esp_err_t sd_spi_init(void)
 {
- esp_err_t ret = ESP_OK;
- 
- /* 挂载点/根目录 */
- const char mount_point[] = MOUNT_POINT;
- 
- /* 文件系统挂载配置 */
- esp_vfs_fat_sdmmc_mount_config_t mount_config = {
-  .format_if_mount_failed = false,  /* 如果挂载失败不重新格式化 */
-  .max_files = 5,                   /* 打开文件最大数量 */
-  .allocation_unit_size = 16 * 1024 /* 硬盘分区簇的大小 */
- };
- 
- /* 使用 SDSPI 主机默认配置，使用 SPI2 */
- sdmmc_host_t host = SDSPI_HOST_DEFAULT();
- host.slot = SPI2_HOST;
- 
- /* SD 卡引脚配置 */
- sdspi_device_config_t slot_config = SDSPI_DEVICE_CONFIG_DEFAULT();
- slot_config.gpio_cs = SD_NUM_CS;
- slot_config.host_id = host.slot;
- 
- /* 挂载文件系统 */
- ret = esp_vfs_fat_sdspi_mount(mount_point,
-                                &host,
-                                &slot_config,
-                                &mount_config,
-                                &s_card);
- 
- if (ret != ESP_OK)
- {
-  if (ret == ESP_FAIL) {
-   printf("Failed to mount filesystem.\n");
-  } else {
-   printf("Failed to initialize SD card (0x%x).\n", ret);
-  }
-  return ret;
- }
- 
- /* 打印SD卡信息 */
- sdmmc_card_print_info(stdout, s_card);
- 
- return ret;
+    esp_err_t ret = ESP_OK;
+
+    /* 挂载点/根目录 */
+    const char mount_point[] = MOUNT_POINT;
+
+    /* 文件系统挂载配置 */
+    esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+        .format_if_mount_failed = false,
+        .max_files = 5,
+        .allocation_unit_size = 16 * 1024
+    };
+
+    /* 使用 SDMMC 主机 (SDIO 模式) */
+    sdmmc_host_t host = SDMMC_HOST_DEFAULT();
+    host.slot = SDMMC_HOST_SLOT_1;
+    host.max_freq_khz = SDMMC_FREQ_HIGHSPEED; 
+
+    /* SDIO 1-bit 模式引脚配置 */
+    sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
+    slot_config.width = 1; // 1-bit 模式
+    slot_config.clk = SPI_CLK_GPIO_PIN; // GPIO 39
+    slot_config.cmd = SPI_MOSI_GPIO_PIN; // GPIO 38 (CMD)
+    slot_config.d0 = SPI_MISO_GPIO_PIN;  // GPIO 40 (D0)
+    slot_config.flags |= SDMMC_SLOT_FLAG_INTERNAL_PULLUP; // 启用内部上拉
+
+    /* 挂载文件系统 */
+    ret = esp_vfs_fat_sdmmc_mount(mount_point,
+                                  &host,
+                                  &slot_config,
+                                  &mount_config,
+                                  &s_card);
+
+    if (ret != ESP_OK) {
+        if (ret == ESP_FAIL) {
+            ESP_LOGE(TAG, "Failed to mount filesystem.");
+        } else {
+            ESP_LOGE(TAG, "Failed to initialize SD card (0x%x).", ret);
+        }
+        return ret;
+    }
+
+    /* 打印SD卡信息 */
+    sdmmc_card_print_info(stdout, s_card);
+
+    return ret;
 }
 
 /**
@@ -266,18 +269,9 @@ void test_sd_file_operations(void)
 */
 void spi2_init(void)
 {
- esp_err_t ret = 0;
- spi_bus_config_t spi_bus_conf = {0};
- /* SPI 总线配置 */
- spi_bus_conf.miso_io_num = SPI_MISO_GPIO_PIN; /* SPI_MISO 引脚 */ 
- spi_bus_conf.mosi_io_num = SPI_MOSI_GPIO_PIN; /* SPI_MOSI 引脚 */ 
- spi_bus_conf.sclk_io_num = SPI_CLK_GPIO_PIN; /* SPI_SCLK 引脚 */ 
- spi_bus_conf.quadwp_io_num = -1; /* SPI 写保护信号引脚，该引脚未使能 */ 
- spi_bus_conf.quadhd_io_num = -1; /* SPI 保持信号引脚，该引脚未使能 */ 
- spi_bus_conf.max_transfer_sz = 320 * 240 * 2;/* 配置最大传输大小，以字节为单位 */
- /* 初始化 SPI 总线 */
- ret = spi_bus_initialize(SPI2_HOST, &spi_bus_conf, SPI_DMA_CH_AUTO); 
- ESP_ERROR_CHECK(ret); /* 校验参数值 */ 
+    // SDMMC 模式下不需要手动初始化 SPI 总线
+    // 如果此函数被调用，直接返回
+    ESP_LOGW(TAG, "spi2_init ignored in SDMMC mode");
 }
 /**
 * @brief SPI 发送命令
