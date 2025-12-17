@@ -84,6 +84,7 @@ E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/spiffs/libspif
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/touch_element/libtouch_element.a
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/usb/libusb.a
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/wifi_provisioning/libwifi_provisioning.a
+E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/spi-sdcard/libspi-sdcard.a
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__esp_jpeg/libespressif__esp_jpeg.a
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__esp32-camera/libespressif__esp32-camera.a
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/main/libmain.a
