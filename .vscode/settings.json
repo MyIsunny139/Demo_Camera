@@ -11,5 +11,7 @@
     "--background-index",
     "--query-driver=E:\\soft\\Espressif\\tools\\xtensa-esp-elf\\esp-14.2.0_20241119\\xtensa-esp-elf\\bin\\xtensa-esp32s3-elf-gcc.exe",
     "--compile-commands-dir=e:\\soft\\ESP-project\\esp32-demo-Assembly\\Demo_Camera\\build"
-  ]
+  ],
+  "idf.flashType": "UART",
+  "idf.portWin": "COM5"
 }

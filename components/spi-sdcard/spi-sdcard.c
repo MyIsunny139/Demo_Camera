@@ -41,7 +41,7 @@ spi_device_handle_t MY_SD_Handle;
 static sdmmc_card_t *s_card = NULL;
 
 /**
-* @brief SD 卡初始化
+* @brief SD 卡初始化w
 * @param 无
 * @retval esp_err_t
 */
