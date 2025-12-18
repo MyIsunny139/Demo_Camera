@@ -1,6 +1,6 @@
 /**
- * @file spi-sdcard.c
- * @brief SPI SD Card Driver Implementation
+ * @file sdio-sdcard.c
+ * @brief SDIO SD Card Driver Implementation
  */
 
 #include <stdio.h>
@@ -9,35 +9,13 @@
 #include <sys/stat.h>
 #include "esp_vfs_fat.h"
 #include "sdmmc_cmd.h"
-#include "driver/sdspi_host.h"
 #include "esp_timer.h"
 #include "esp_log.h"
 
-#include "include/spi-sdcard.h"
+#include "include/sdio-sdcard.h"
 
 static const char *TAG = "sd_file";
 
-
-/* SD Card Commands */
-#define CMD0    0       // GO_IDLE_STATE
-#define CMD1    1       // SEND_OP_COND (MMC)
-#define CMD8    8       // SEND_IF_COND
-#define CMD9    9       // SEND_CSD
-#define CMD10   10      // SEND_CID
-#define CMD12   12      // STOP_TRANSMISSION
-#define CMD16   16      // SET_BLOCKLEN
-#define CMD17   17      // READ_SINGLE_BLOCK
-#define CMD18   18      // READ_MULTIPLE_BLOCK
-#define CMD23   23      // SET_BLOCK_COUNT
-#define CMD24   24      // WRITE_BLOCK
-#define CMD25   25      // WRITE_MULTIPLE_BLOCK
-#define CMD55   55      // APP_CMD
-#define CMD58   58      // READ_OCR
-#define ACMD23  23      // SET_WR_BLK_ERASE_COUNT
-#define ACMD41  41      // SD_SEND_OP_COND
-
-
-spi_device_handle_t MY_SD_Handle;
 static sdmmc_card_t *s_card = NULL;
 
 /**
@@ -45,7 +23,7 @@ static sdmmc_card_t *s_card = NULL;
 * @param 无
 * @retval esp_err_t
 */
-esp_err_t sd_spi_init(void)
+esp_err_t sd_sdio_init(void)
 {
     esp_err_t ret = ESP_OK;
 
@@ -67,9 +45,9 @@ esp_err_t sd_spi_init(void)
     /* SDIO 1-bit 模式引脚配置 */
     sdmmc_slot_config_t slot_config = SDMMC_SLOT_CONFIG_DEFAULT();
     slot_config.width = 1; // 1-bit 模式
-    slot_config.clk = SPI_CLK_GPIO_PIN; // GPIO 39
-    slot_config.cmd = SPI_MOSI_GPIO_PIN; // GPIO 38 (CMD)
-    slot_config.d0 = SPI_MISO_GPIO_PIN;  // GPIO 40 (D0)
+    slot_config.clk = SDIO_CLK_GPIO_PIN; // GPIO 39
+    slot_config.cmd = SDIO_CMD_GPIO_PIN; // GPIO 38 (CMD)
+    slot_config.d0 = SDIO_D0_GPIO_PIN;  // GPIO 40 (D0)
     slot_config.flags |= SDMMC_SLOT_FLAG_INTERNAL_PULLUP; // 启用内部上拉
 
     /* 挂载文件系统 */
@@ -259,68 +237,40 @@ void test_sd_file_operations(void)
     }
 }
 
+/**
+* @brief 写入二进制文件（如JPEG图片）
+* @param filename: 文件名（不包含挂载点路径，例如 "photo.jpg"）
+* @param data: 二进制数据指针
+* @param size: 数据大小（字节）
+* @retval esp_err_t ESP_OK表示成功
+*/
+esp_err_t sd_write_jpeg_file(const char *filename, const uint8_t *data, size_t size)
+{
+    if (filename == NULL || data == NULL || size == 0) {
+        ESP_LOGE(TAG, "Invalid parameters");
+        return ESP_ERR_INVALID_ARG;
+    }
 
+    // 构建完整路径
+    char filepath[128];
+    snprintf(filepath, sizeof(filepath), "%s/%s", MOUNT_POINT, filename);
 
+    // 打开文件进行二进制写入
+    FILE *f = fopen(filepath, "wb");
+    if (f == NULL) {
+        ESP_LOGE(TAG, "Failed to open file %s for writing", filepath);
+        return ESP_FAIL;
+    }
 
-/**
-* @brief 初始化 SPI
-* @param 无
-* @retval 无
-*/
-void spi2_init(void)
-{
-    // SDMMC 模式下不需要手动初始化 SPI 总线
-    // 如果此函数被调用，直接返回
-    ESP_LOGW(TAG, "spi2_init ignored in SDMMC mode");
+    // 写入二进制数据
+    size_t written = fwrite(data, 1, size, f);
+    fclose(f);
+
+    if (written == size) {
+        ESP_LOGI(TAG, "Successfully wrote %d bytes to %s", written, filepath);
+        return ESP_OK;
+    } else {
+        ESP_LOGE(TAG, "Failed to write complete data to %s (wrote %d/%d bytes)", filepath, written, size);
+        return ESP_FAIL;
+    }
 }
-/**
-* @brief SPI 发送命令
-* @param handle : SPI 句柄
-* @param cmd : 要发送命令
-* @retval 无
-*/
-void spi2_write_cmd(spi_device_handle_t handle, uint8_t cmd)
-{
- esp_err_t ret;
- spi_transaction_t t = {0};
- t.length = 8; /* 要传输的位数 一个字节 8 位 */
- t.tx_buffer = &cmd; /* 将命令填充进去 */
- ret = spi_device_polling_transmit(handle, &t); /* 开始传输 */
- ESP_ERROR_CHECK(ret); /* 一般不会有问题 */
-}
-/**
-* @brief SPI 发送数据
-* @param handle : SPI 句柄
-* @param data : 要发送的数据
-* @param len : 要发送的数据长度
-* @retval 无
-*/
-void spi2_write_data(spi_device_handle_t handle, const uint8_t *data, int len)
-{
- esp_err_t ret;
- spi_transaction_t t = {0};
- if (len == 0)
- {
- return; /* 长度为 0 没有数据要传输 */
- }
- t.length = len * 8; /* 要传输的位数 一个字节 8 位 */
- t.tx_buffer = data; /* 将命令填充进去 */
- ret = spi_device_polling_transmit(handle, &t); /* 开始传输 */
- ESP_ERROR_CHECK(ret); /* 一般不会有问题 */
-}
-/**
-* @brief SPI 处理数据
-* @param handle : SPI 句柄
-* @param data : 要发送的数据
-* @retval t.rx_data[0] : 接收到的数据
-*/
-uint8_t spi2_transfer_byte(spi_device_handle_t handle, uint8_t data)
-{
- spi_transaction_t t;
- memset(&t, 0, sizeof(t));
- t.flags = SPI_TRANS_USE_TXDATA | SPI_TRANS_USE_RXDATA;
- t.length = 8;
- t.tx_data[0] = data;
- spi_device_transmit(handle, &t);
- return t.rx_data[0];
- }

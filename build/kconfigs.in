@@ -76,3 +76,4 @@ source "E:/soft/Espressif/frameworks/esp-idf-v5.4.2/components/wear_levelling/Kc
 source "E:/soft/Espressif/frameworks/esp-idf-v5.4.2/components/wifi_provisioning/Kconfig"
 source "E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/managed_components/espressif__esp32-camera/Kconfig"
 source "E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/managed_components/espressif__esp_jpeg/Kconfig"
+source "E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/managed_components/espressif__esp_websocket_client/Kconfig"

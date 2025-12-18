@@ -554,7 +554,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/spi-sdcard/cmake_install.cmake")
+  include("E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/sdio-sdcard/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
@@ -569,12 +569,22 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
+  include("E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/LCD_1.69spi/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
   include("E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__esp_jpeg/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
   include("E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__esp32-camera/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__esp_websocket_client/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)

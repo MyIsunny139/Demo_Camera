@@ -1,4 +1,4 @@
-# Install script for directory: E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/components/spi-sdcard
+# Install script for directory: E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/managed_components/espressif__esp_websocket_client
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

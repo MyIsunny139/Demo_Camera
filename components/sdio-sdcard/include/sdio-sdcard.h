@@ -1,10 +1,10 @@
 /**
- * @file spi-sdcard.h
- * @brief Simple SPI SD Card Driver Interface
+ * @file sdio-sdcard.h
+ * @brief Simple SDIO SD Card Driver Interface
  */
 
-#ifndef SPI_SDCARD_H
-#define SPI_SDCARD_H
+#ifndef SDIO_SDCARD_H
+#define SDIO_SDCARD_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -13,22 +13,15 @@
 #include "esp_log.h"
 
 
-#include "driver/spi_master.h"
 #include "driver/gpio.h"
-#include "driver/sdspi_host.h"
-#include "driver/spi_common.h"
 #include "sdmmc_cmd.h"
 #include "driver/sdmmc_host.h"
 
-
-
 /* 引脚定义 */
-#define SPI_MOSI_GPIO_PIN GPIO_NUM_38 /* SD_CMD */
-#define SPI_CLK_GPIO_PIN  GPIO_NUM_39 /* SD_CLK */
-#define SPI_MISO_GPIO_PIN GPIO_NUM_40 /* SD_DATA (D0) */
+#define SDIO_CMD_GPIO_PIN GPIO_NUM_38 /* SD_CMD */
+#define SDIO_CLK_GPIO_PIN GPIO_NUM_39 /* SD_CLK */
+#define SDIO_D0_GPIO_PIN  GPIO_NUM_40 /* SD_DATA (D0) */
 
-/* CS 引脚在 SDIO 模式下不需要，保留定义以防编译错误，但不使用 */
-#define SD_NUM_CS GPIO_NUM_NC 
 #define MOUNT_POINT "/0:"
 
 #ifdef __cplusplus
@@ -39,7 +32,7 @@ extern "C" {
  * @brief SD卡初始化
  * @return esp_err_t ESP_OK表示成功
  */
-esp_err_t sd_spi_init(void);
+esp_err_t sd_sdio_init(void);
 
 /**
  * @brief 获取SD卡空间信息
@@ -47,11 +40,6 @@ esp_err_t sd_spi_init(void);
  * @param out_free_bytes 剩余容量（KB）
  */
 void sd_get_fatfs_usage(size_t *out_total_bytes, size_t *out_free_bytes);
-
-/**
- * @brief 初始化SPI总线
- */
-void spi2_init(void);
 
 /**
  * @brief 写入文本文件
@@ -77,6 +65,15 @@ esp_err_t sd_append_text_file(const char *filename, const char *content);
  * @return esp_err_t ESP_OK表示成功
  */
 esp_err_t sd_read_text_file(const char *filename, char *buffer, size_t buffer_size);
+
+/**
+ * @brief 写入二进制文件（如JPEG图片）
+ * @param filename 文件名（不包含挂载点路径）
+ * @param data 二进制数据指针
+ * @param size 数据大小（字节）
+ * @return esp_err_t ESP_OK表示成功
+ */
+esp_err_t sd_write_jpeg_file(const char *filename, const uint8_t *data, size_t size);
 
 /**
  * @brief 测试SD卡文件操作

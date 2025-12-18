@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "bootloader",
-    "project_version":    "v5.4.2-1-gc6a290dce1",
+    "project_version":    "v5.4.2-1-gc6a290dce1-dirty",
     "project_path":       "E:/soft/Espressif/frameworks/esp-idf-v5.4.2/components/bootloader/subproject",
     "idf_path":           "E:/soft/Espressif/frameworks/esp-idf-v5.4.2",
     "build_dir":          "E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/bootloader",
@@ -11,7 +11,7 @@
     "app_elf":            "bootloader.elf",
     "app_bin":            "bootloader.bin",
     "build_type":         "flash_app",
-    "git_revision":       "v5.4.2-1-gc6a290dce1",
+    "git_revision":       "v5.4.2-1-gc6a290dce1-dirty",
     "target":             "esp32s3",
     "rev":                "",
     "min_rev":            "0",
