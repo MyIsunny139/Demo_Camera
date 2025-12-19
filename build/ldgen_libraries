@@ -90,5 +90,6 @@ E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/ap_wifi/libap_
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/LCD_1.69spi/libLCD_1.69spi.a
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__esp_jpeg/libespressif__esp_jpeg.a
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__esp32-camera/libespressif__esp32-camera.a
+E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/Video_AVI/libVideo_AVI.a
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__esp_websocket_client/libespressif__esp_websocket_client.a
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/main/libmain.a

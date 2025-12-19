@@ -878,6 +878,13 @@ E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__esp
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__esp32-camera/CMakeFiles/install.dir
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__esp32-camera/CMakeFiles/install/local.dir
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__esp32-camera/CMakeFiles/install/strip.dir
+E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/Video_AVI/CMakeFiles/__idf_Video_AVI.dir
+E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/Video_AVI/CMakeFiles/edit_cache.dir
+E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/Video_AVI/CMakeFiles/rebuild_cache.dir
+E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/Video_AVI/CMakeFiles/list_install_components.dir
+E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/Video_AVI/CMakeFiles/install.dir
+E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/Video_AVI/CMakeFiles/install/local.dir
+E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/Video_AVI/CMakeFiles/install/strip.dir
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__esp_websocket_client/CMakeFiles/__idf_espressif__esp_websocket_client.dir
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__esp_websocket_client/CMakeFiles/edit_cache.dir
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__esp_websocket_client/CMakeFiles/rebuild_cache.dir

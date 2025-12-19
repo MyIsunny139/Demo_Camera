@@ -1,6 +1,10 @@
 #include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include <inttypes.h>
 #include "esp_camera.h"
 #include "esp_log.h"
+#include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "sdkconfig.h"
@@ -21,11 +25,15 @@
 #include "esp_websocket_client.h"
 #include "st7789_driver.h"
 #include "cst816t_driver.h"
+#include "Video_AVI.h"
 
 #define LED_GPIO    GPIO_NUM_2      // LED 引脚
 #define BUTTON_GPIO GPIO_NUM_1     // 按键引脚
 
-
+// 视频录制帧率配置
+#define VIDEO_FPS           10
+#define VIDEO_WIDTH         240
+#define VIDEO_HEIGHT        240
 
 static const char *TAG = "MAIN";
 static bool led_state = false;     // LED 状态
@@ -35,11 +43,21 @@ int get_level(int gpio) {
     return gpio_get_level(gpio); 
 }
 
-// 短按回调: 切换 LED 状态
+// 短按回调: 切换录制状态
 void short_press(int gpio) { 
-    led_state = !led_state;                     // 反转状态
-    gpio_set_level(LED_GPIO, led_state);        // 设置 LED
-    ESP_LOGI(TAG, "短按 - LED %s", led_state ? "ON" : "OFF");
+    if (!video_recorder_is_recording()) {
+        // 开始录制
+        if (video_recorder_start() == ESP_OK) {
+            led_state = true;
+            gpio_set_level(LED_GPIO, 1);  // LED 常亮
+            ESP_LOGI(TAG, "短按 - 开始录制, LED ON");
+        }
+    } else {
+        // 请求停止录制（实际停止由录制任务完成）
+        video_recorder_request_stop();
+        ESP_LOGI(TAG, "短按 - 请求停止录制");
+        // LED 由录制任务在实际停止时关闭
+    }
 }
 
 // 长按回调
@@ -102,8 +120,6 @@ void app_button_init(void)
     ESP_LOGI(TAG, "短按 GPIO%d -> 切换 LED (GPIO%d)", BUTTON_GPIO, LED_GPIO);
 }
 
-camera_fb_t *fb = NULL;
-
 // 简单的全屏刷色测试 -> 改为视频流显示
 void lcd_show_task(void *param)
 {
@@ -162,6 +178,57 @@ void lcd_show_task(void *param)
 }
 
 static uint16_t jpge_id = 0;
+
+// 视频录制任务
+void video_record_task(void *param)
+{
+    ESP_LOGI(TAG, "视频录制任务就绪, 短按按键开始/停止录制");
+    
+    uint32_t loop_count = 0;
+    uint32_t last_status_time = 0;
+    
+    while (1) {
+        loop_count++;
+        uint32_t now = (uint32_t)(esp_timer_get_time() / 1000);
+        
+        // 录制时每5秒打印一次状态
+        if (video_recorder_is_recording() && (now - last_status_time >= 5000)) {
+            ESP_LOGI(TAG, "录制状态: %"PRIu32" 帧", video_recorder_get_frame_count());
+            last_status_time = now;
+        }
+        
+        // 检查是否收到停止请求
+        if (video_recorder_stop_requested()) {
+            ESP_LOGI(TAG, "检测到停止请求");
+            video_recorder_do_stop();
+            // 关闭 LED
+            led_state = false;
+            gpio_set_level(LED_GPIO, 0);
+            ESP_LOGI(TAG, "录制已停止, LED OFF");
+        }
+        
+        // 只有在录制时才获取摄像头帧
+        if (video_recorder_is_recording()) {
+            camera_fb_t *fb = esp_camera_fb_get();
+            if (!fb) {
+                ESP_LOGE(TAG, "获取摄像头帧失败");
+                vTaskDelay(pdMS_TO_TICKS(100));
+                continue;
+            }
+            
+            // 添加帧到 AVI
+            video_recorder_add_frame(fb);
+            
+            esp_camera_fb_return(fb);
+            
+            // 控制帧率约 10fps
+            vTaskDelay(pdMS_TO_TICKS(100));
+        } else {
+            // 未录制时，较长间隔检查
+            vTaskDelay(pdMS_TO_TICKS(50));
+        }
+    }
+}
 
 void camera_task(void *param)
 {
@@ -266,6 +333,27 @@ void app_main(void)
     ESP_ERROR_CHECK(sd_sdio_init());
     lcd_init();
     camera_init();
-    xTaskCreatePinnedToCore(lcd_show_task, "lcd_show_task", 4096, NULL, 5, NULL, 1);
-    // xTaskCreatePinnedToCore(camera_task, "camera_task", 8192, NULL, 5, NULL, 1);
+    
+    // 初始化视频录制器
+    video_recorder_config_t recorder_cfg = {
+        .width = VIDEO_WIDTH,
+        .height = VIDEO_HEIGHT,
+        .fps = VIDEO_FPS,
+        .max_frames = 3000,     // 最大5分钟 @ 10fps
+        .save_path = "/0:/"
+    };
+    ESP_ERROR_CHECK(video_recorder_init(&recorder_cfg));
+    
+    ESP_LOGI(TAG, "准备启动视频录制任务...");
+    
+    // 启动视频录制任务 (短按按键控制录制)
+    BaseType_t ret = xTaskCreatePinnedToCore(video_record_task, "video_record", 8192, NULL, 5, NULL, 1);
+    if (ret != pdPASS) {
+        ESP_LOGE(TAG, "创建视频录制任务失败!");
+    } else {
+        ESP_LOGI(TAG, "视频录制任务创建成功");
+    }
+    
+    //xTaskCreatePinnedToCore(lcd_show_task, "lcd_show_task", 4096, NULL, 5, NULL, 1);
+    //xTaskCreatePinnedToCore(camera_task, "camera_task", 8192, NULL, 5, NULL, 1);
 }
