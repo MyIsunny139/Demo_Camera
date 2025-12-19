@@ -79,6 +79,7 @@ esp_err_t sd_write_jpeg_file(const char *filename, const uint8_t *data, size_t s
  * @brief 测试SD卡文件操作
  */
 void test_sd_file_operations(void);
+
 #ifdef __cplusplus
 }
 #endif

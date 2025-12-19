@@ -222,7 +222,7 @@ void video_record_task(void *param)
             esp_camera_fb_return(fb);
             
             // 控制帧率约 10fps
-            vTaskDelay(pdMS_TO_TICKS(100));
+            
         } else {
             // 未录制时，较长间隔检查
             vTaskDelay(pdMS_TO_TICKS(50));

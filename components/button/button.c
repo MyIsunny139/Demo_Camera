@@ -145,15 +145,13 @@ static void button_handle(void *param)
                     btn_target->state = BUTTON_PRESS;   //调转到按下状态
                 }
                 break;
-            case BUTTON_PRESS:               //按键按下了，等待一点延时（消抖），然后触发短按回调事件，进入BUTTON_HOLD
+            case BUTTON_PRESS:               //按键按下了，等待一点延时（消抖），然后进入BUTTON_HOLD
                 if(btn_target->btn_cfg.getlevel_cb(gpio_num) == btn_target->btn_cfg.active_level)
                 {
                     btn_target->press_cnt += increase_cnt;
-                    if(btn_target->press_cnt >= FILITER_TIMER)  //过了滤波时间，执行短按回调函数
+                    if(btn_target->press_cnt >= FILITER_TIMER)  //过了滤波时间，确认按下
                     {
-                        if(btn_target->btn_cfg.short_cb)
-                            btn_target->btn_cfg.short_cb(gpio_num);
-                        btn_target->state = BUTTON_HOLD;    //状态转入按下状态
+                        btn_target->state = BUTTON_HOLD;    //状态转入按住状态，继续计时
                     }
                 }
                 else
@@ -173,8 +171,15 @@ static void button_handle(void *param)
                         btn_target->state = BUTTON_LONG_PRESS_HOLD;
                     }
                 }
-                else
+                else  //释放了按键
                 {
+                    // 判断是短按还是长按（在长按时间内释放才是短按）
+                    if(btn_target->press_cnt < btn_target->btn_cfg.long_press_time)
+                    {
+                        // 短按：在长按时间内释放
+                        if(btn_target->btn_cfg.short_cb)
+                            btn_target->btn_cfg.short_cb(gpio_num);
+                    }
                     btn_target->state = BUTTON_RELEASE;
                     btn_target->press_cnt = 0;
                 }
