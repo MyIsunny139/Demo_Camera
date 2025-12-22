@@ -8,40 +8,17 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "sdkconfig.h"
-#include "ws_server.h"
-#include "nvs_flash.h"
-#include "esp_http_server.h"
-#include "esp_system.h"
+#include "driver/gpio.h"
+#include "Video_AVI.h"
+#include "App_init.h"
+#include "st7789_driver.h"
+#include "sdio-sdcard.h"
 #include "jpeg_decoder.h"
 
-#define BOARD_ESP32S3_GOOUUU 1
-#include "camera_pinout.h"
-
-#include "sdio-sdcard.h"
-#include "button.h"
-#include "driver/gpio.h"
-#include "ap_wifi.h"
-#include "wifi_manager.h"
-#include "esp_websocket_client.h"
-#include "st7789_driver.h"
-#include "cst816t_driver.h"
-#include "Video_AVI.h"
-
 #define LED_GPIO    GPIO_NUM_2      // LED 引脚
-#define BUTTON_GPIO GPIO_NUM_1     // 按键引脚
-
-// 视频录制帧率配置
-#define VIDEO_FPS           10
-#define VIDEO_WIDTH         240
-#define VIDEO_HEIGHT        240
 
 static const char *TAG = "MAIN";
-static bool led_state = false;     // LED 状态
-
-// 获取按键电平
-int get_level(int gpio) { 
-    return gpio_get_level(gpio); 
-}
+bool led_state = false;     // LED 状态（非static，App_init.c需要extern）
 
 // 短按回调: 切换录制状态
 void short_press(int gpio) { 
@@ -60,64 +37,11 @@ void short_press(int gpio) {
     }
 }
 
-// 长按回调
+// 长按回调（在 App_init.c 中声明为 extern）
 void long_press(int gpio) { 
     ESP_LOGW(TAG, "长按 - 进入配网模式");
+    extern void ap_wifi_apcfg(bool enable);
     ap_wifi_apcfg(true);  // 启动 AP 配网
-
-}
-void wifi_state_handle(WIFI_STATE state)
-{
-    if(state == WIFI_STATE_CONNECTED)
-    {
-        ESP_LOGI(TAG,"Wifi connected");
-    }
-    else if(state == WIFI_STATE_CONNECTED)
-    {
-        ESP_LOGI(TAG,"Wifi disconnected");
-    }
-}
-
-void app_button_init(void)
-{
-    ESP_LOGI(TAG, "系统启动");
-    
-    // 初始化 LED GPIO (输出模式)
-    gpio_config_t led_io = {
-        .pin_bit_mask = (1ULL << LED_GPIO),
-        .mode = GPIO_MODE_OUTPUT,
-        .pull_up_en = GPIO_PULLUP_DISABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE
-    };
-    gpio_config(&led_io);
-    gpio_set_level(LED_GPIO, 0);  // 初始状态: 关闭
-    
-    // 初始化按键 GPIO (输入模式)
-    gpio_config_t btn_io = {
-        .pin_bit_mask = (1ULL << BUTTON_GPIO),
-        .mode = GPIO_MODE_INPUT,
-        .pull_up_en = GPIO_PULLUP_ENABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE
-    };
-    gpio_config(&btn_io);
-
-    // 配置按键
-    button_config_t btn = {
-        .gpio_num = BUTTON_GPIO,
-        .active_level = 0,
-        .long_press_time = 3000,
-        .getlevel_cb = get_level,
-        .short_cb = short_press,
-        .long_cb = long_press
-    };
-    
-    // 注册按键
-    button_event_set(&btn);
-    
-    ESP_LOGI(TAG, "按键初始化完成");
-    ESP_LOGI(TAG, "短按 GPIO%d -> 切换 LED (GPIO%d)", BUTTON_GPIO, LED_GPIO);
 }
 
 // 简单的全屏刷色测试 -> 改为视频流显示
@@ -257,92 +181,10 @@ void camera_task(void *param)
     }
 }
 
-void camera_init(void)
-{
-    camera_config_t config = {
-        .pin_pwdn = CAM_PIN_PWDN,
-        .pin_reset = CAM_PIN_RESET,
-        .pin_xclk = CAM_PIN_XCLK,
-        .pin_sccb_sda = CAM_PIN_SIOD,
-        .pin_sccb_scl = CAM_PIN_SIOC,
-        
-        .pin_d7 = CAM_PIN_D7,
-        .pin_d6 = CAM_PIN_D6,
-        .pin_d5 = CAM_PIN_D5,
-        .pin_d4 = CAM_PIN_D4,
-        .pin_d3 = CAM_PIN_D3,
-        .pin_d2 = CAM_PIN_D2,
-        .pin_d1 = CAM_PIN_D1,
-        .pin_d0 = CAM_PIN_D0,
-        .pin_vsync = CAM_PIN_VSYNC,
-        .pin_href = CAM_PIN_HREF,
-        .pin_pclk = CAM_PIN_PCLK,
-        
-        .xclk_freq_hz = 20000000,
-        .ledc_timer = LEDC_TIMER_0,
-        .ledc_channel = LEDC_CHANNEL_0,
-        
-        .pixel_format = PIXFORMAT_JPEG,
-        .frame_size = FRAMESIZE_240X240,
-        .jpeg_quality = 12,
-        .fb_count = 2,
-        .fb_location = CAMERA_FB_IN_PSRAM,
-        .grab_mode = CAMERA_GRAB_WHEN_EMPTY
-    };
-    
-    esp_err_t err = esp_camera_init(&config);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "摄像头初始化失败: 0x%x", err);
-        return;
-    }
-    
-    sensor_t *s = esp_camera_sensor_get();
-    if (s) {
-        s->set_vflip(s, 0);
-        s->set_hmirror(s, 0);
-    }
-    
-    ESP_LOGI(TAG, "摄像头初始化成功");
-}
-
-void lcd_init(void)
-{
-    st7789_cfg_t lcd_cfg = {
-        .mosi = LCD_MOSI,
-        .clk  = LCD_CLK,
-        .cs   = LCD_CS,
-        .dc   = LCD_DC,
-        .rst  = LCD_RST,
-        .bl   = LCD_BL,
-        .spi_fre = 40000000,
-        .width = 240,
-        .height = 280,
-        .spin = 1,
-        .done_cb = NULL,
-        .cb_param = NULL
-    };
-    st7789_driver_hw_init(&lcd_cfg);
-    st7789_lcd_backlight(true); // 打开背光
-}
-
 void app_main(void) 
 {
-    ESP_ERROR_CHECK(nvs_flash_init());
-    app_button_init();
-    ap_wifi_init(wifi_state_handle);
-    ESP_ERROR_CHECK(sd_sdio_init());
-    lcd_init();
-    camera_init();
-    
-    // 初始化视频录制器
-    video_recorder_config_t recorder_cfg = {
-        .width = VIDEO_WIDTH,
-        .height = VIDEO_HEIGHT,
-        .fps = VIDEO_FPS,
-        .max_frames = 3000,     // 最大5分钟 @ 10fps
-        .save_path = "/0:/"
-    };
-    ESP_ERROR_CHECK(video_recorder_init(&recorder_cfg));
+    // 执行所有系统初始化
+    ESP_ERROR_CHECK(app_init_all());
     
     ESP_LOGI(TAG, "准备启动视频录制任务...");
     
