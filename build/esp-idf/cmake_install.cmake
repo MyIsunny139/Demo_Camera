@@ -594,6 +594,26 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
+  include("E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/MAX98367A/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/app_wss_client/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/INMP441/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__nghttp/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
   include("E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/main/cmake_install.cmake")
 endif()
 

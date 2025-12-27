@@ -2203,6 +2203,12 @@ CONFIG_JD_USE_ROM=y
 # CONFIG_ESP_WS_CLIENT_ENABLE_DYNAMIC_BUFFER is not set
 # CONFIG_ESP_WS_CLIENT_SEPARATE_TX_LOCK is not set
 # end of ESP WebSocket client
+
+#
+# NGHTTP configuration
+#
+CONFIG_ESP_NGHTTP2_INBOUND_BUFFER_LENGTH=4096
+# end of NGHTTP configuration
 # end of Component config
 
 # CONFIG_IDF_EXPERIMENTAL_FEATURES is not set

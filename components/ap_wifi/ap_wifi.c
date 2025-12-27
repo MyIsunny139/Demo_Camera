@@ -11,6 +11,9 @@
 
 #define TAG     "apcfg"
 
+// WiFi 连接超时时间（秒）
+#define WIFI_CONNECT_TIMEOUT_SEC    15
+
 //html网页在spiffs文件系统中的路径
 #define INDEX_HTML_PATH "/spiffs/apcfg.html"
 
@@ -25,6 +28,9 @@ static char current_ssid[32];
 static char current_password[64];
 
 #define APCFG_BIT   (BIT0)
+
+// 前向声明
+static void wifi_connect_wait_task(void* param);
 
 /** 从spiffs中加载html页面到内存
  * @param 无
@@ -140,9 +146,37 @@ static void ap_wifi_task(void* param)
         if(ev &APCFG_BIT)
         {
             web_ws_stop();
+            // 保存WiFi配置到NVS
+            wifi_manager_save_config(current_ssid, current_password);
             wifi_manager_connect(current_ssid,current_password);
         }
     }
+}
+
+/** WiFi 连接等待任务（非阻塞）
+ * @param param 未使用
+ * @return 无
+*/
+static void wifi_connect_wait_task(void* param)
+{
+    int timeout = WIFI_CONNECT_TIMEOUT_SEC * 10;  // 100ms 一次检查
+    
+    ESP_LOGI(TAG, "等待WiFi连接，超时时间: %d秒", WIFI_CONNECT_TIMEOUT_SEC);
+    
+    while (timeout-- > 0) {
+        if (wifi_manager_is_connect()) {
+            ESP_LOGI(TAG, "WiFi连接成功");
+            vTaskDelete(NULL);
+            return;
+        }
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+    
+    // 连接超时，进入配网模式
+    ESP_LOGW(TAG, "WiFi连接超时 (%d秒)，启动配网模式", WIFI_CONNECT_TIMEOUT_SEC);
+    ap_wifi_apcfg(true);
+    
+    vTaskDelete(NULL);
 }
 
 /** wifi功能和ap配网功能初始化
@@ -155,6 +189,24 @@ void ap_wifi_init(p_wifi_state_callback f)
     wifi_manager_init(f);
     apcfg_event = xEventGroupCreate();
     xTaskCreatePinnedToCore(ap_wifi_task,"apcfg",4096,NULL,2,NULL,1);
+    
+    // 检查是否有保存的WiFi配置
+    if (wifi_manager_has_saved_config()) {
+        char saved_ssid[32] = {0};
+        char saved_password[64] = {0};
+        
+        if (wifi_manager_load_config(saved_ssid, saved_password) == ESP_OK) {
+            ESP_LOGI(TAG, "尝试连接保存的WiFi: %s", saved_ssid);
+            wifi_manager_connect(saved_ssid, saved_password);
+            
+            // 创建一个任务来等待WiFi连接，避免阻塞初始化
+            xTaskCreatePinnedToCore(wifi_connect_wait_task, "wifi_wait", 2048, NULL, 2, NULL, 1);
+        }
+    } else {
+        // 没有保存的配置，直接进入配网模式
+        ESP_LOGI(TAG, "无保存的WiFi配置，启动配网模式");
+        ap_wifi_apcfg(true);
+    }
 }
 
 /** 连接某个热点

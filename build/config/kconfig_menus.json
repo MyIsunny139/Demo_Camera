@@ -33185,6 +33185,24 @@
                 "id": "component-config-esp-websocket-client",
                 "title": "ESP WebSocket client",
                 "type": "menu"
+            },
+            {
+                "children": [
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": "Set the size of the inbound buffer for nghttp2. This buffer is used to store incoming HTTP/2 frames.\nThe default value is 16KB as per nghttp2 library configuration but here we have set it to 4KB. The\nreceive buffer gets placed on the stack and hence adjust this value based on your application needs\nand available stack size.",
+                        "id": "ESP_NGHTTP2_INBOUND_BUFFER_LENGTH",
+                        "name": "ESP_NGHTTP2_INBOUND_BUFFER_LENGTH",
+                        "range": null,
+                        "title": "Nghttp2 inbound buffer length",
+                        "type": "int"
+                    }
+                ],
+                "depends_on": null,
+                "id": "component-config-nghttp-configuration",
+                "title": "NGHTTP configuration",
+                "type": "menu"
             }
         ],
         "depends_on": null,

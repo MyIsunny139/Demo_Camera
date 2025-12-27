@@ -92,4 +92,8 @@ E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__esp
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__esp32-camera/libespressif__esp32-camera.a
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/Video_AVI/libVideo_AVI.a
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__esp_websocket_client/libespressif__esp_websocket_client.a
+E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/MAX98367A/libMAX98367A.a
+E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/app_wss_client/libapp_wss_client.a
+E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/INMP441/libINMP441.a
+E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/espressif__nghttp/libespressif__nghttp.a
 E:/soft/ESP-project/esp32-demo-Assembly/Demo_Camera/build/esp-idf/main/libmain.a

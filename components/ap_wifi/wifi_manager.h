@@ -40,6 +40,25 @@ esp_err_t wifi_manager_scan(p_wifi_scan_callback f);
 */
 esp_err_t wifi_manager_connect(const char* ssid,const char* password);
 
+/** 保存WiFi配置到NVS
+ * @param ssid
+ * @param password
+ * @return 成功/失败
+*/
+esp_err_t wifi_manager_save_config(const char* ssid, const char* password);
+
+/** 从NVS加载WiFi配置
+ * @param ssid 输出缓冲区，至少32字节
+ * @param password 输出缓冲区，至少64字节
+ * @return 成功/失败
+*/
+esp_err_t wifi_manager_load_config(char* ssid, char* password);
+
+/** 检查是否有保存的WiFi配置
+ * @return true 有配置, false 无配置
+*/
+bool wifi_manager_has_saved_config(void);
+
 /** 是否已经连接了路由器
  * @param 无
  * @return 是/否

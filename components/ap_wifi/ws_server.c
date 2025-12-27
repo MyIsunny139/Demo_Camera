@@ -98,6 +98,14 @@ esp_err_t   web_ws_start(ws_cfg_t *cfg)
 {
     if(cfg == NULL)
         return ESP_FAIL;
+    
+    // 如果服务器已经在运行，先停止
+    if(http_ws_server != NULL) {
+        ESP_LOGW(TAG, "HTTP server already running, stopping first...");
+        httpd_stop(http_ws_server);
+        http_ws_server = NULL;
+    }
+    
     http_html = cfg->html_code;
     ws_receive_fn = cfg->receive_fn;
 
@@ -117,10 +125,17 @@ esp_err_t   web_ws_start(ws_cfg_t *cfg)
         .is_websocket = true
     };
 
-    if (httpd_start(&http_ws_server, &config) == ESP_OK)
+    esp_err_t ret = httpd_start(&http_ws_server, &config);
+    if (ret == ESP_OK)
     {
         httpd_register_uri_handler(http_ws_server, &uri_get);
         httpd_register_uri_handler(http_ws_server, &ws);
+        ESP_LOGI(TAG, "HTTP server started successfully");
+    }
+    else
+    {
+        ESP_LOGE(TAG, "Failed to start HTTP server: 0x%x", ret);
+        return ret;
     }
 
     return ESP_OK;
@@ -130,8 +145,11 @@ esp_err_t   web_ws_stop(void)
 {
     if(http_ws_server)
     {
-        return httpd_stop(http_ws_server);
+        esp_err_t ret = httpd_stop(http_ws_server);
         http_ws_server = NULL;
+        client_sockfd = -1;
+        ESP_LOGI(TAG, "HTTP server stopped");
+        return ret;
     }
     return ESP_OK;
 }

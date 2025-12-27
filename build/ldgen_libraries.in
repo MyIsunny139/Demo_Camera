@@ -92,4 +92,8 @@ $<TARGET_FILE:__idf_espressif__esp_jpeg>
 $<TARGET_FILE:__idf_espressif__esp32-camera>
 $<TARGET_FILE:__idf_Video_AVI>
 $<TARGET_FILE:__idf_espressif__esp_websocket_client>
+$<TARGET_FILE:__idf_MAX98367A>
+$<TARGET_FILE:__idf_app_wss_client>
+$<TARGET_FILE:__idf_INMP441>
+$<TARGET_FILE:__idf_espressif__nghttp>
 $<TARGET_FILE:__idf_main>

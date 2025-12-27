@@ -10,9 +10,16 @@
 #include "esp_mac.h"
 #include "esp_wifi.h"
 #include "esp_event.h"
+#include "nvs_flash.h"
+#include "nvs.h"
 
 #include "lwip/ip4_addr.h"
 #define TAG     "wifi_manager"
+
+// NVS 命名空间和键名
+#define NVS_WIFI_NAMESPACE  "wifi_cfg"
+#define NVS_KEY_SSID        "ssid"
+#define NVS_KEY_PASSWORD    "password"
 
 //重连次数
 #define MAX_CONNECT_RETRY   6
@@ -266,4 +273,97 @@ esp_err_t wifi_manager_connect(const char* ssid,const char* password)
 bool wifi_manager_is_connect(void)
 {
     return is_sta_connected;
+}
+
+/** 保存WiFi配置到NVS
+ * @param ssid
+ * @param password
+ * @return 成功/失败
+*/
+esp_err_t wifi_manager_save_config(const char* ssid, const char* password)
+{
+    nvs_handle_t nvs_handle;
+    esp_err_t ret;
+    
+    ret = nvs_open(NVS_WIFI_NAMESPACE, NVS_READWRITE, &nvs_handle);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "NVS打开失败: 0x%x", ret);
+        return ret;
+    }
+    
+    ret = nvs_set_str(nvs_handle, NVS_KEY_SSID, ssid);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "保存SSID失败");
+        nvs_close(nvs_handle);
+        return ret;
+    }
+    
+    ret = nvs_set_str(nvs_handle, NVS_KEY_PASSWORD, password);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "保存密码失败");
+        nvs_close(nvs_handle);
+        return ret;
+    }
+    
+    ret = nvs_commit(nvs_handle);
+    nvs_close(nvs_handle);
+    
+    if (ret == ESP_OK) {
+        ESP_LOGI(TAG, "WiFi配置已保存: SSID=%s", ssid);
+    }
+    return ret;
+}
+
+/** 从NVS加载WiFi配置
+ * @param ssid 输出缓冲区，至少32字节
+ * @param password 输出缓冲区，至少64字节
+ * @return 成功/失败
+*/
+esp_err_t wifi_manager_load_config(char* ssid, char* password)
+{
+    nvs_handle_t nvs_handle;
+    esp_err_t ret;
+    
+    ret = nvs_open(NVS_WIFI_NAMESPACE, NVS_READONLY, &nvs_handle);
+    if (ret != ESP_OK) {
+        ESP_LOGD(TAG, "NVS打开失败，可能没有保存的配置");
+        return ret;
+    }
+    
+    size_t ssid_len = 32;
+    size_t pass_len = 64;
+    
+    ret = nvs_get_str(nvs_handle, NVS_KEY_SSID, ssid, &ssid_len);
+    if (ret != ESP_OK) {
+        nvs_close(nvs_handle);
+        return ret;
+    }
+    
+    ret = nvs_get_str(nvs_handle, NVS_KEY_PASSWORD, password, &pass_len);
+    nvs_close(nvs_handle);
+    
+    if (ret == ESP_OK) {
+        ESP_LOGI(TAG, "已加载保存的WiFi配置: SSID=%s", ssid);
+    }
+    return ret;
+}
+
+/** 检查是否有保存的WiFi配置
+ * @return true 有配置, false 无配置
+*/
+bool wifi_manager_has_saved_config(void)
+{
+    nvs_handle_t nvs_handle;
+    esp_err_t ret;
+    
+    ret = nvs_open(NVS_WIFI_NAMESPACE, NVS_READONLY, &nvs_handle);
+    if (ret != ESP_OK) {
+        return false;
+    }
+    
+    size_t ssid_len = 0;
+    ret = nvs_get_str(nvs_handle, NVS_KEY_SSID, NULL, &ssid_len);
+    nvs_close(nvs_handle);
+    
+    return (ret == ESP_OK && ssid_len > 1);
 }

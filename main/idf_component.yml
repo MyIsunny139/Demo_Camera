@@ -16,3 +16,4 @@ dependencies:
   #   public: true
   espressif/esp32-camera: ^2.1.4
   espressif/esp_websocket_client: ^1.6.0
+  espressif/nghttp: ^1.65.0~1

@@ -25,6 +25,12 @@ void lcd_init(void);
 esp_err_t app_video_recorder_init(void);
 
 /**
+ * @brief 初始化WebSocket客户端
+ * @return ESP_OK 成功，其他值失败
+ */
+esp_err_t app_wss_client_init(void);
+
+/**
  * @brief 执行所有系统初始化
  * @return ESP_OK 成功，其他值失败
  */
